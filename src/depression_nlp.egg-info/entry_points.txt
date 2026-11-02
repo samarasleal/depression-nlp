@@ -1,0 +1,4 @@
+[console_scripts]
+depression-cbt-screening = depression_nlp.cbt_screening.pipeline_screening:main
+depression-deidentify = depression_nlp.deidentification.pipeline_deidentification:main
+depression-features = depression_nlp.pipeline:main

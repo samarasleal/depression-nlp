@@ -1,0 +1,36 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+
+# Python environment and cache
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Private data and generated artifacts
+data/*
+!data/.gitkeep
+*.wav
+*.mp3
+*.flac
+*.m4a
+*.7z
+*.npy
+*.npz
+*.pkl
+*.parquet
+
+# Models and logs
+models/
+checkpoints/
+logs/
+*.log
+
+# Editor and operating system
+.vscode/
+.idea/
+.DS_Store

@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "depression-nlp"
+version = "0.1.0"
+description = "Acoustic feature pipeline for depression research"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "librosa>=0.10",
+    "numpy>=1.24",
+    "pandas>=2.0",
+    "pyannote.audio>=4.0,<5.0",
+    "pyannote.metrics>=4.0",
+    "python-dotenv>=1.0",
+    "PyYAML>=6.0",
+    "scipy>=1.10",
+    "torch>=2.8",
+    "faster-whisper>=1.2.1,<2",
+    "transformers>=4.45,<5",
+    "sentencepiece>=0.2",
+    "spacy>=3.7,<4",
+    "openpyxl>=3.1,<4",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.6"]
+
+[project.scripts]
+depression-features = "depression_nlp.pipeline:main"
+depression-cbt-screening = "depression_nlp.cbt_screening.pipeline_screening:main"
+depression-deidentify = "depression_nlp.deidentification.pipeline_deidentification:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100

@@ -1,0 +1,56 @@
+audio:
+  sample_rate: 16000
+  pre_emphasis: 0.97
+  target_rms: 0.1
+  frame_length_ms: 30
+  frame_overlap: 0.75
+  segment_duration_seconds: 5
+
+diarization:
+  model: pyannote/speaker-diarization-community-1
+  device: auto
+  num_speakers: 2
+
+features:
+  max_segments: 700
+  f0:
+    enabled: true
+    min_hz: 75.0
+    max_hz: 400.0
+  energy:
+    enabled: true
+  logmel:
+    enabled: true
+    n_mels: 128
+    n_fft: 2048
+    hop_length: 512
+    max_time_frames: 256
+
+patients:
+  include: []
+
+sessions:
+  maximum_per_patient: 8
+  include: []
+
+transcription:
+  enabled: true
+  model: large-v3
+  language: it
+  device: cuda
+  compute_type: float16
+  beam_size: 5
+  min_turn_seconds: 0.5
+
+utterance_processing:
+  enabled: true
+  min_words: 3
+
+validation:
+  save_diarization_for:
+    SVR02: 8
+    SVR04: 7
+    SVR15: 2
+
+  collar: 0.0
+  skip_overlap: false

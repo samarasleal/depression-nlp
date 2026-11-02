@@ -1,0 +1,30 @@
+cbt_screening:
+  model: MoritzLaurer/mDeBERTa-v3-base-mnli-xnli
+  device: cuda
+  batch_size: 16
+  output_mode: all
+
+  hypotheses:
+    guided_discovery: Il terapeuta pone una domanda socratica che invita esplicitamente il paziente a esaminare prove, significati o interpretazioni alternative e a raggiungere una propria conclusione.
+    formulation: Il terapeuta identifica un pensiero o comportamento centrale oppure collega esplicitamente elementi come situazione, pensiero, emozione e comportamento per comprendere il problema.
+    cognitive_change: Il terapeuta applica o guida esplicitamente una tecnica per valutare, mettere in discussione o modificare un pensiero, una credenza o un'interpretazione.
+    behavioral_change: Il terapeuta propone, insegna o pianifica esplicitamente un esercizio comportamentale, un'esposizione, un esperimento o un'azione destinata a cambiare il comportamento o verificare una previsione.
+    collaboration: Il terapeuta invita esplicitamente il paziente a esprimere una preferenza, scegliere tra alternative o prendere insieme una decisione sul lavoro terapeutico.
+    empathy_understanding: Il terapeuta riconosce o valida esplicitamente una specifica emozione, esperienza o prospettiva espressa dal paziente.
+    praise_encouragement: Il terapeuta riconosce esplicitamente uno sforzo o un progresso del paziente oppure lo incoraggia a tentare un'attività terapeutica.
+    agenda_goal_setting: Il terapeuta propone o negozia esplicitamente quale argomento o obiettivo sarà affrontato durante la sessione corrente.
+    homework_review: Il terapeuta fa riferimento esplicito a un compito concordato in una sessione precedente e verifica se è stato svolto, quali difficoltà sono emerse o cosa è stato appreso.
+    homework_assignment: Il terapeuta concorda esplicitamente con il paziente un esercizio, un compito o un piano d'azione da svolgere dopo la sessione.
+    feedback: Il terapeuta chiede esplicitamente al paziente una valutazione della sessione, di un intervento o della comprensione condivisa, oppure fornisce un feedback sul processo terapeutico.
+    summary_transition: Il terapeuta riassume esplicitamente punti terapeutici già discussi, annuncia il passaggio a una nuova fase della sessione oppure collega la sessione corrente a un'altra sessione.
+
+  cbt_enrichment_labels:
+    - guided_discovery
+    - formulation
+    - cognitive_change
+    - behavioral_change
+
+  selection:
+    n_enriched: 3
+    n_reserve: 0
+    random_seed: 42
