@@ -47,10 +47,30 @@ utterance_processing:
   min_words: 3
 
 validation:
+  regenerate_predictions: false
   save_diarization_for:
     SVR02: 8
     SVR04: 7
     SVR15: 2
 
   collar: 0.0
-  skip_overlap: false
+  skip_overlap: 
+  
+model_evaluation:
+  top_k: 3
+  intervention_threshold: 0.60
+
+  threshold_validation:
+    calibration_source: random
+    n_splits: 5
+    test_fold: 0
+    random_state: 42
+
+modeling:
+  outcome:
+    max_hdrs: 69.0
+    max_cdi: 90.0
+    min_cdi: 40.0
+
+  classification:
+    probability_threshold: 0.5

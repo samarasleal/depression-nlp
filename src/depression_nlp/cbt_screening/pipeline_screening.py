@@ -1,44 +1,39 @@
-"""Score CBT relevance and select utterances for human annotation."""
-
+# Score CBT relevance and select utterances for human annotation
 import argparse
 import json
 import random
 from pathlib import Path
-
 import yaml
-
 from depression_nlp.cbt_screening.nli import NLIClassifier
 
+def select_annotation_candidates(utterances: list[dict], domains: dict[str, list[str]], patient_id: str, session: int, random_seed: int = 42) -> list[dict]:
+    """Select one utterance per domain and one random remaining utterance."""
+    remaining = utterances.copy()
+    for utterance in utterances:
+        utterance["selected_for_annotation"] = False
+        utterance["selection_source"] = None
+        utterance["selection_score"] = None
+    for domain_name, domain_labels in domains.items():
+        if not remaining:
+            break
+        def domain_score(utterance: dict) -> float:
+            return max(utterance["label_scores"].get(label, 0.0) for label in domain_labels)
 
-def select_candidates(utterances: list[dict], config: dict, patient_id: str, session: int) -> list[dict]:
-    """Select CBT-enriched, random, and reserve utterances."""
-    ordered = sorted(utterances, key=lambda item: item["cbt_enrichment_score"], reverse=True)
-    enriched = ordered[:config["n_enriched"]]
-    remaining = ordered[config["n_enriched"]:]
-    rng = random.Random(f'{config["random_seed"]}:{patient_id}:{session}')
+        selected = max(remaining, key=domain_score)
+        selected["selected_for_annotation"] = True
+        selected["selection_source"] = domain_name
+        selected["selection_score"] = round(domain_score(selected), 6)
+        remaining.remove(selected)
+    if remaining:
+        rng = random.Random(f"{random_seed}:{patient_id}:{session}")
+        selected = rng.choice(remaining)
+        selected["selected_for_annotation"] = True
+        selected["selection_source"] = "random"
+        selected["selection_score"] = None
+    return utterances
 
-    random_items = [rng.choice(remaining)] if remaining else []
-    random_ids = {item["utterance_id"] for item in random_items}
-    reserve_pool = [item for item in remaining if item["utterance_id"] not in random_ids]
-    reserves = reserve_pool[:config["n_reserve"]]
-
-    selected = []
-    for source, items in (
-        ("cbt_enriched", enriched),
-        ("random", random_items),
-        ("reserve", reserves),
-    ):
-        for item in items:
-            candidate = dict(item)
-            candidate["selection_source"] = source
-            candidate["gold_label"] = None
-            candidate["exclude_sensitive"] = None
-            selected.append(candidate)
-    return selected
-
-
-def process_json(path: Path, output_path: Path, classifier: NLIClassifier, config: dict,) -> None:
-    """Score all utterances and tag those selected for annotation."""
+def process_json(path: Path, output_path: Path, classifier: NLIClassifier, config: dict) -> None:
+    """Score utterances and select one per domain plus one random candidate."""
     data = json.loads(path.read_text(encoding="utf-8"))
     utterances = data.get("utterances", [])
 
@@ -53,13 +48,9 @@ def process_json(path: Path, output_path: Path, classifier: NLIClassifier, confi
     )
 
     scored = []
-    cbt_labels = config["cbt_enrichment_labels"]
     for utterance, score in zip(utterances, scores):
         item = dict(utterance)
         item.update(score)
-        # Use only Domain 1 labels for CBT enrichment
-        item["cbt_enrichment_score"] = round(max(item["label_scores"][label] for label in cbt_labels), 6)
-        # Create a unique identifier across therapists, patients and sessions
         item["utterance_uid"] = (
             f'{data["therapist_id"]}_{data["patient_id"]}_'
             f'S{int(data["session"]):02d}_U{int(item["utterance_id"]):04d}'
@@ -68,32 +59,23 @@ def process_json(path: Path, output_path: Path, classifier: NLIClassifier, confi
         item["exclude_sensitive"] = None
         scored.append(item)
 
-    # Select 3 CBT-enriched and 1 random utterance
-    selected = select_candidates(
-        scored,
-        config["selection"],
-        str(data["patient_id"]),
-        int(data["session"]),
+    # Select one utterance per domain and one random remaining utterance
+    scored = select_annotation_candidates(
+        utterances=scored,
+        domains=config["selection"]["domains"],
+        patient_id=str(data["patient_id"]),
+        session=int(data["session"]),
+        random_seed=config["selection"].get("random_seed", 42),
     )
 
-    selection_by_id = { item["utterance_id"]: item["selection_source"] for item in selected}
-    # Keep all utterances and tag the annotation subset
-    for item in scored:
-        source = selection_by_id.get(item["utterance_id"])
-        item["selection_source"] = source
-        item["selected_for_annotation"] = source in {
-            "cbt_enriched",
-            "random",
-        }
     mode = config.get("output_mode", "all")
     if mode == "all":
         output_utterances = scored
     elif mode == "candidates":
-        output_utterances = selected
-        for item in output_utterances:
-            item["selected_for_annotation"] = (
-                item["selection_source"] in {"cbt_enriched", "random"}
-            )
+        output_utterances = [
+            item for item in scored
+            if item.get("selected_for_annotation", False)
+        ]
     else:
         raise ValueError(f"Invalid CBT screening output_mode: {mode}")
 
@@ -104,11 +86,10 @@ def process_json(path: Path, output_path: Path, classifier: NLIClassifier, confi
         "language": data.get("language", "it"),
         "output_mode": mode,
         "n_available_utterances": len(utterances),
-        "n_selected_for_annotation": sum(
-            item.get("selected_for_annotation", False)
-            for item in output_utterances),
+        "n_selected_for_annotation": sum(item.get("selected_for_annotation", False) for item in scored),
         "utterances": output_utterances,
     }
+
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(
         json.dumps(result, ensure_ascii=False, indent=2),
@@ -121,10 +102,8 @@ def run_pipeline(input_root: str, output_root: str, config_path: str) -> None:
     config = yaml.safe_load(Path(config_path).read_text(encoding="utf-8"))["cbt_screening"]
     classifier = NLIClassifier(config["model"], config["device"])
     source_root, target_root = Path(input_root), Path(output_root)
-
     for path in sorted(source_root.rglob("*.json")):
         process_json(path, target_root / path.relative_to(source_root), classifier, config)
-
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Score and select CBT-related utterances.")

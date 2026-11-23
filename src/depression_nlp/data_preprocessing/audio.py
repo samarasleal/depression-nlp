@@ -20,12 +20,7 @@ def calculate_frame_length(sr: int, frame_length_ms: float) -> int:
 def calculate_hop_length(frame_length: int, frame_overlap: float) -> int:
     return max(1, int(round(frame_length * (1.0 - frame_overlap))))
 
-def load_and_preprocess_audio(
-    audio_path: str,
-    sample_rate: int,
-    pre_emphasis_coeff: float,
-    target_rms: float,
-) -> tuple[np.ndarray, int]:
+def load_and_preprocess_audio(audio_path: str, sample_rate: int, pre_emphasis_coeff: float, target_rms: float) -> tuple[np.ndarray, int]:
     # Load mono audio at a fixed sample rate and preserve the notebook preprocessing
     y, sr = librosa.load(audio_path, sr=sample_rate, mono=True)
     return rms_normalize(pre_emphasis(y, pre_emphasis_coeff), target_rms), sr
@@ -53,7 +48,6 @@ def extract_speaker_audio(y: np.ndarray, sr: int, annotation, speaker: str) -> n
     if not segments:
         raise ValueError(f"No audio was assigned to speaker {speaker}.")
     return np.concatenate(segments)
-
 
 def split_audio_chunks(y: np.ndarray, sr: int, duration_seconds: float) -> np.ndarray:
     # Split audio into fixed-size chunks and zero-pad the final chunk

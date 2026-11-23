@@ -1,4 +1,6 @@
 [console_scripts]
+depression-annotation = depression_nlp.deidentification.export_annotations:main
 depression-cbt-screening = depression_nlp.cbt_screening.pipeline_screening:main
 depression-deidentify = depression_nlp.deidentification.pipeline_deidentification:main
-depression-features = depression_nlp.pipeline:main
+depression-features = depression_nlp.pipeline_raw_features:main
+depression-validate-diarization = depression_nlp.diarization_validation.pipeline_validation:main

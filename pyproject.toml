@@ -22,16 +22,18 @@ dependencies = [
     "transformers>=4.45,<5",
     "sentencepiece>=0.2",
     "spacy>=3.7,<4",
-    "openpyxl>=3.1,<4",
-]
+    "scikit-learn>=1.7.2,<1.8",
+    "openpyxl>=3.1,<4"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0", "ruff>=0.6"]
 
 [project.scripts]
-depression-features = "depression_nlp.pipeline:main"
+depression-features = "depression_nlp.pipeline_raw_features:main"
 depression-cbt-screening = "depression_nlp.cbt_screening.pipeline_screening:main"
 depression-deidentify = "depression_nlp.deidentification.pipeline_deidentification:main"
+depression-annotation = "depression_nlp.deidentification.export_annotations:main"
+depression-validate-diarization = "depression_nlp.diarization_validation.pipeline_validation:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

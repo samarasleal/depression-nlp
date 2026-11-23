@@ -10,39 +10,14 @@ from pathlib import Path
 import pandas as pd
 from dotenv import load_dotenv
 from depression_nlp.config import load_config
-from depression_nlp.data_preprocessing.audio import (
-    calculate_frame_length,
-    calculate_hop_length,
-    extract_speaker_audio,
-    get_seconds,
-    load_and_preprocess_audio,
-    split_audio_chunks,
-)
-from depression_nlp.data_preprocessing.diarization import (
-    assign_speaker_roles,
-    create_diarization_pipeline,
-    diarize_audio,
-    get_speaker_embedding,
-    identify_patient_speaker,
-    identify_reference_speaker,
-)
-from depression_nlp.data_preprocessing.sessions import (
-    find_patient_reference_audio,
-    get_patient_row,
-    is_session_processed,
-    iter_patient_sessions,
-    load_sessions,
-    mark_session_processed,
-)
-from depression_nlp.data_preprocessing.transcription import (
-    create_transcription_model,
-    transcribe_therapist,
-)
-
+from depression_nlp.data_preprocessing.audio import (calculate_frame_length, calculate_hop_length, extract_speaker_audio, get_seconds, load_and_preprocess_audio, split_audio_chunks)
+from depression_nlp.data_preprocessing.diarization import (assign_speaker_roles, create_diarization_pipeline, diarize_audio, get_speaker_embedding, identify_patient_speaker, identify_reference_speaker)
+from depression_nlp.data_preprocessing.sessions import (find_patient_reference_audio, get_patient_row, is_session_processed, iter_patient_sessions, load_sessions, mark_session_processed)
+from depression_nlp.data_preprocessing.transcription import (create_transcription_model, transcribe_therapist)
 from depression_nlp.feature_extraction.energy import extract_energy
 from depression_nlp.feature_extraction.f0 import extract_f0_segments, summarize_f0
 from depression_nlp.feature_extraction.logmel import extract_logmel_3d
-from depression_nlp.storage import save_array, save_dataframe
+from depression_nlp.feature_extraction.storage import save_array, save_dataframe
 
 def create_patient_reference(pipeline, df, line_index: int, patient_folder: Path, config: dict):
     """Create a patient embedding from the real annotated reference interval."""
@@ -52,7 +27,6 @@ def create_patient_reference(pipeline, df, line_index: int, patient_folder: Path
     end = get_seconds(df.at[line_index, "Patient_Speech_Interval_To"])
     speaker = identify_reference_speaker(result.annotation, start, end)
     return get_speaker_embedding(result, speaker)
-
 
 def extract_role_features(role_audio, sr: int, role: str, patient_id: str, session_number: int, feature_root: Path, config: dict) -> dict[str, object]:
     """Extract enabled acoustic features from one speaker waveform."""
@@ -95,19 +69,7 @@ def extract_role_features(role_audio, sr: int, role: str, patient_id: str, sessi
             )
     return values
 
-
-def process_session(
-    pipeline,
-    whisper_model,
-    audio_path: Path,
-    patient_reference,
-    therapist_id: str,
-    patient_id: str,
-    session_number: int,
-    feature_root: Path,
-    transcription_root: Path,
-    config: dict,
-) -> dict[str, object]:
+def process_session(pipeline, whisper_model, audio_path: Path, patient_reference, therapist_id: str, patient_id: str, session_number: int, feature_root: Path, transcription_root: Path, config: dict) -> dict[str, object]:
     """Diarize a session, assign roles, and extract all enabled features."""
     result = diarize_audio(pipeline, audio_path, config["diarization"]["num_speakers"])
     patient_speaker = identify_patient_speaker(result, patient_reference)
@@ -150,15 +112,7 @@ def process_session(
         values[f"Transcript_Therapist_Session{session_number}"] = transcript_path
     return values
 
-def run_pipeline(
-    spreadsheet: str,
-    audio_root: str,
-    output: str,
-    feature_root: str,
-    transcription_root: str,
-    config_path: str,
-    hf_token: str,
-) -> None:
+def run_pipeline(spreadsheet: str, audio_root: str, output: str, feature_root: str, transcription_root: str, config_path: str, hf_token: str) -> None:
     """Run diarization and feature extraction for all available patient sessions."""
     config, df = load_config(config_path), load_sessions(spreadsheet)
     

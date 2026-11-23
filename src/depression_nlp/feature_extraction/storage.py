@@ -1,17 +1,13 @@
-"""Persistence utilities for tables and feature arrays."""
-
+# Persistence utilities for tables and feature arrays
 from pathlib import Path
-
 import numpy as np
 import pandas as pd
-
 
 def save_dataframe(df: pd.DataFrame, output_path: str | Path) -> None:
     """Save a DataFrame and create its parent directory when required."""
     path = Path(output_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     df.to_pickle(path)
-
 
 def save_array(array: np.ndarray, output_path: str | Path, dtype=np.float16) -> str:
     """Save a finite NumPy array and return its absolute path."""

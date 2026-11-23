@@ -11,6 +11,7 @@ faster-whisper<2,>=1.2.1
 transformers<5,>=4.45
 sentencepiece>=0.2
 spacy<4,>=3.7
+scikit-learn<1.8,>=1.7.2
 openpyxl<4,>=3.1
 
 [dev]

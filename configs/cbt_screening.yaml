@@ -3,7 +3,6 @@ cbt_screening:
   device: cuda
   batch_size: 16
   output_mode: all
-
   hypotheses:
     guided_discovery: Il terapeuta pone una domanda socratica che invita esplicitamente il paziente a esaminare prove, significati o interpretazioni alternative e a raggiungere una propria conclusione.
     formulation: Il terapeuta identifica un pensiero o comportamento centrale oppure collega esplicitamente elementi come situazione, pensiero, emozione e comportamento per comprendere il problema.
@@ -18,13 +17,21 @@ cbt_screening:
     feedback: Il terapeuta chiede esplicitamente al paziente una valutazione della sessione, di un intervento o della comprensione condivisa, oppure fornisce un feedback sul processo terapeutico.
     summary_transition: Il terapeuta riassume esplicitamente punti terapeutici già discussi, annuncia il passaggio a una nuova fase della sessione oppure collega la sessione corrente a un'altra sessione.
 
-  cbt_enrichment_labels:
-    - guided_discovery
-    - formulation
-    - cognitive_change
-    - behavioral_change
-
   selection:
-    n_enriched: 3
-    n_reserve: 0
     random_seed: 42
+    domains:
+      domain_1:
+        - guided_discovery
+        - formulation
+        - cognitive_change
+        - behavioral_change
+      domain_2:
+        - collaboration
+        - empathy_understanding
+        - praise_encouragement
+      domain_3:
+        - agenda_goal_setting
+        - homework_review
+        - homework_assignment
+        - feedback
+        - summary_transition

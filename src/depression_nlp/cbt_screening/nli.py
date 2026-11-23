@@ -1,8 +1,6 @@
 # Local zero-shot NLI classification for CBT utterances.
-
 import torch
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
-
 
 class NLIClassifier:
     """Score utterances against CBT hypotheses using entailment probability."""

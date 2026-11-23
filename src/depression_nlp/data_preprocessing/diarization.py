@@ -1,5 +1,4 @@
 # Speaker diarization and patient identification 
-
 from dataclasses import dataclass
 from pathlib import Path
 import numpy as np
@@ -25,7 +24,6 @@ def create_diarization_pipeline(model: str, token: str, device: str) -> Pipeline
     pipeline.to(torch.device("cpu" if selected_device == "auto" else selected_device))
     return pipeline
 
-
 def diarize_audio(pipeline: Pipeline, audio_path: str | Path, num_speakers: int) -> DiarizationResult:
     output = pipeline(str(audio_path), num_speakers=num_speakers)
     labels = list(output.speaker_diarization.labels())
@@ -38,7 +36,6 @@ def diarize_audio(pipeline: Pipeline, audio_path: str | Path, num_speakers: int)
         labels=labels,
         embeddings=embeddings)
 
-
 def identify_reference_speaker(annotation, start_seconds: float, end_seconds: float) -> str:
     """Identify the speaker with the greatest overlap with the annotated patient interval."""
     overlap_by_speaker: dict[str, float] = {}
@@ -49,23 +46,18 @@ def identify_reference_speaker(annotation, start_seconds: float, end_seconds: fl
         raise ValueError("The patient reference interval does not overlap diarized speech.")
     return max(overlap_by_speaker, key=overlap_by_speaker.get)
 
-
 def get_speaker_embedding(result: DiarizationResult, speaker: str) -> np.ndarray:
     # Return the embedding aligned with a diarized speaker label
     if speaker not in result.labels:
         raise ValueError(f"Speaker label not found: {speaker}")
     return result.embeddings[result.labels.index(speaker)]
 
-
 def identify_patient_speaker(result: DiarizationResult, reference_embedding: np.ndarray) -> str:
     # Match session speakers to the patient's real reference using cosine similarity
     reference = np.asarray(reference_embedding, dtype=np.float32)
     reference /= max(np.linalg.norm(reference), 1e-12)
-    embeddings = result.embeddings / np.maximum(
-        np.linalg.norm(result.embeddings, axis=1, keepdims=True), 1e-12
-    )
+    embeddings = result.embeddings / np.maximum(np.linalg.norm(result.embeddings, axis=1, keepdims=True), 1e-12)
     return result.labels[int(np.argmax(embeddings @ reference))]
-
 
 def assign_speaker_roles(result: DiarizationResult, patient_speaker: str) -> dict[str, str]:
     other_speakers = [speaker for speaker in result.labels if speaker != patient_speaker]

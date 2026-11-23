@@ -1,3 +1,3 @@
-"""Depression NLP research pipeline."""
+"""Deidentification pipeline."""
 
 __version__ = "0.1.0"
